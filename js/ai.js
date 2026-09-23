@@ -71,7 +71,7 @@ function aiTurn() {
       const cover = findNearestCover(u);
       if (cover && (cover.col !== u.col || cover.row !== u.row)) {
         const st = findBestAdjacentStep(u, cover);
-        if (st) { u.col = st.col; u.row = st.row; u.hasMoved = true; }
+        if (st) { u.col = st.col; u.row = st.row; u.hasMoved = true; const terr = TERRAIN[st.col] ? TERRAIN[st.col][st.row] : 0; const extra = terr === 1 ? ' [道路]' : ''; log(`${u.name} 移动到 (${st.col},${st.row})${extra}`); }
       }
     }
 
@@ -82,7 +82,7 @@ function aiTurn() {
         const dp = hexDistance({col:u.col,row:u.row}, {col:protectee.col,row:protectee.row});
         if (dp > 2) {
           const pst = findBestAdjacentStep(u, { col: protectee.col, row: protectee.row });
-          if (pst) { u.col = pst.col; u.row = pst.row; u.hasMoved = true; }
+          if (pst) { u.col = pst.col; u.row = pst.row; u.hasMoved = true; const terr = TERRAIN[pst.col] ? TERRAIN[pst.col][pst.row] : 0; const extra = terr === 1 ? ' [道路]' : ''; log(`${u.name} 移动到 (${pst.col},${pst.row})${extra}`); }
         }
       }
     }
@@ -198,7 +198,7 @@ function aiTurn() {
         const cx = combatBlues.reduce((s,b)=>s+b.col,0) / combatBlues.length;
         const cy = combatBlues.reduce((s,b)=>s+b.row,0) / combatBlues.length;
         const st = findBestAdjacentStep(u, { col: Math.round(cx), row: Math.round(cy) });
-        if (st) { u.col = st.col; u.row = st.row; u.hasMoved = true; }
+        if (st) { u.col = st.col; u.row = st.row; u.hasMoved = true; const terr = TERRAIN[st.col] ? TERRAIN[st.col][st.row] : 0; const extra = terr === 1 ? ' [道路]' : ''; log(`${u.name} 移动到 (${st.col},${st.row})${extra}`); }
       }
       restore(); i++; render(); setTimeout(step, 350); return;
     }
@@ -243,7 +243,7 @@ function aiTurn() {
     // 距离过远则前进
     if (minD > 5 && !u.hasMoved) {
       const st = findBestAdjacentStep(u, { col: target.col, row: target.row });
-      if (st) { u.col = st.col; u.row = st.row; u.hasMoved = true; }
+      if (st) { u.col = st.col; u.row = st.row; u.hasMoved = true; const terr = TERRAIN[st.col] ? TERRAIN[st.col][st.row] : 0; const extra = terr === 1 ? ' [道路]' : ''; log(`${u.name} 移动到 (${st.col},${st.row})${extra}`); }
     }
 
     if (!u.hasFired && u.canFire && target.alive) resolveShoot(u, target);
