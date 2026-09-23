@@ -89,17 +89,12 @@ canvas.addEventListener('click', e => {
 
 document.getElementById('endTurn').addEventListener('click', () => {
   if (game.turn !== 'blue' || game.busy || game.over) return;
-  document.getElementById('endTurn').addEventListener('click', () => {
-  alert('【1】点击触发\nturn=' + game.turn + ' busy=' + game.busy + ' over=' + game.over + ' units=' + game.units.length);
-  if (game.turn !== 'blue' || game.busy || game.over) return;
-  game.turn = 'red'; game.selected = null;
   game.turn = 'red'; game.selected = null; game.highlights = []; game.pendingAction = null;
   game.throwMode = false; game.callArmorMode = false; game.callArmorVehicle = null;
   game.groundFireMode = false; game.markMode = false;
   render(); game.busy = true;
   setTimeout(aiTurn, 400);
 });
-
 document.getElementById('startBtn').addEventListener('click', startBattle);
 document.getElementById('backToMenu').addEventListener('click', backToMenu);
 document.getElementById('helpBtn').addEventListener('click', openTutorial);
