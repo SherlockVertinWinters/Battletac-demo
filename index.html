@@ -1,6 +1,34 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+ <script>
+window.addEventListener('load', function() {
+  setTimeout(function() {
+    var r = '=== 诊断报告 ===\n\n';
+    r += 'CATEGORIES: ' + typeof CATEGORIES + '\n';
+    r += 'SQUADS: ' + typeof SQUADS + '\n';
+    r += 'TUTORIAL_CHAPTERS: ' + typeof TUTORIAL_CHAPTERS + '\n';
+    r += 'DLC_REGISTRY: ' + typeof DLC_REGISTRY + '\n';
+    r += 'game: ' + typeof game + '\n';
+    r += 'Unit: ' + typeof Unit + '\n';
+    r += 'aiTurn: ' + typeof aiTurn + '\n';
+    r += 'endRound: ' + typeof endRound + '\n';
+    r += 'render: ' + typeof render + '\n';
+    r += 'renderSquadList: ' + typeof renderSquadList + '\n';
+    r += 'setupNormalWalls: ' + typeof setupNormalWalls + '\n';
+    r += 'updateUnitInfo: ' + typeof updateUnitInfo + '\n';
+    r += 'initGame: ' + typeof initGame + '\n';
+    try {
+      if (typeof CATEGORIES !== 'undefined' && CATEGORIES) r += '\nCATEGORIES keys: ' + Object.keys(CATEGORIES).join(', ');
+    } catch(e) { r += '\nCATEGORIES 读取失败: ' + e.message; }
+    try {
+      if (typeof SQUADS !== 'undefined' && SQUADS) r += '\nSQUADS keys: ' + Object.keys(SQUADS).join(', ');
+    } catch(e) { r += '\nSQUADS 读取失败: ' + e.message; }
+    r += '\n\n现在时间: ' + new Date().toLocaleTimeString();
+    alert(r);
+  }, 1500);
+});
+</script>
 <meta charset="UTF-8">
 <title>班战术兵棋 Demo v5.7</title>
 <style>
