@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>班战术兵棋 Demo v5.7</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; display: flex; justify-content: center; padding: 16px; }
+  #app { display: flex; gap: 16px; }
+  canvas { background: #1e293b; border-radius: 8px; cursor: pointer; }
+  #side { width: 320px; display: flex; flex-direction: column; gap: 12px; max-height: 660px; }
+  #info, #legend, #logbox, #status { background: #1e293b; border-radius: 8px; padding: 12px; }
+  #side > #info, #side > #legend, #side > #status { flex-shrink: 0; }
+  #logbox { flex: 1; overflow-y: auto; min-height: 120px; max-height: 240px; }
+  #logbox div { font-size: 12px; line-height: 1.5; padding: 3px 0; border-bottom: 1px solid #334155; }
+  h3 { font-size: 12px; color: #94a3b8; margin-bottom: 8px; letter-spacing: 1px; }
+  button { background: #3b82f6; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 600; }
+  button:hover { background: #2563eb; }
+  button:disabled { background: #475569; cursor: not-allowed; }
+  .stat { font-size: 12px; line-height: 1.7; }
+  .stat span { color: #94a3b8; }
+  .hl { color: #fbbf24; font-weight: 600; }
+  .weapon-box { display: flex; align-items: center; gap: 8px; margin: 6px 0; padding: 6px 8px; background: #0f172a; border-radius: 6px; }
+  .weapon-box .wname { font-size: 12px; font-weight: 600; }
+  .weapon-box .wammo { font-size: 11px; color: #94a3b8; }
+  .weapon-box .wclass { font-size: 10px; color: #c4b5fd; margin-top: 2px; }
+  .ammo-line, .supply-line, .med-line, .crew-line, .grenade-line { display: flex; justify-content: space-between; margin: 4px 0; padding: 4px 8px; background: #0f172a; border-radius: 4px; font-size: 12px; }
+  .ammo-line .val, .supply-line .val, .med-line .val, .crew-line .val, .grenade-line .val { font-family: monospace; font-weight: 600; }
+  .ammo-warn { color: #f87171; }
+  .ammo-ok { color: #4ade80; }
+  .supply-line { border-left: 3px solid #22c55e; }
+  .med-line { border-left: 3px solid #22c55e; }
+  .crew-line { border-left: 3px solid #f59e0b; }
+  .crew-line.active { border-left-color: #22c55e; color: #4ade80; }
+  .crew-line.warn { border-left-color: #f87171; color: #f87171; }
+  .grenade-line { border-left: 3px solid #ef4444; }
+  .pair-line { margin: 4px 0; padding: 4px 8px; background: #0f172a; border-radius: 4px; border-left: 3px solid #22c55e; font-size: 11px; color: #4ade80; }
+  .shock-line { margin: 4px 0; padding: 4px 8px; background: #0f172a; border-radius: 4px; border-left: 3px solid #ef4444; font-size: 11px; color: #fca5a5; }
+  .platform-line { margin: 4px 0; padding: 4px 8px; background: #0f172a; border-radius: 4px; border-left: 3px solid #f59e0b; font-size: 11px; color: #fbbf24; }
+  .conceal-line { margin: 4px 0; padding: 4px 8px; background: #0f172a; border-radius: 4px; border-left: 3px solid #06b6d4; font-size: 11px; color: #67e8f9; }
+  .broken-line { margin: 4px 0; padding: 4px 8px; background: #0f172a; border-radius: 4px; border-left: 3px solid #dc2626; font-size: 11px; color: #fca5a5; font-weight: 700; }
+  .health-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-weight: 700; font-size: 11px; margin-left: 4px; }
+  .hl-v { background: #166534; color: #bbf7d0; }
+  .hl-iv { background: #854d0e; color: #fef08a; }
+  .hl-iii { background: #9a3412; color: #fed7aa; }
+  .hl-ii { background: #991b1b; color: #fecaca; }
+  .hl-i { background: #450a0a; color: #fca5a5; }
+  .mode-btns { display: flex; gap: 4px; margin-top: 6px; }
+  .mode-btn { flex: 1; background: #334155; color: #cbd5e1; border: 1px solid #475569; padding: 5px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600; }
+  .mode-btn.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+  .mode-btn:hover { background: #475569; }
+  .mode-btn.active:hover { background: #2563eb; }
+  .grenade-btn { width: 100%; margin-top: 6px; background: #ef4444; padding: 8px; font-size: 12px; }
+  .grenade-btn:hover { background: #dc2626; }
+  .grenade-btn.active { background: #b91c1c; }
+  .grenade-btn:disabled { background: #475569; }
+  .takeover-btn { width: 100%; margin-top: 6px; background: #f59e0b; padding: 8px; font-size: 12px; }
+  .takeover-btn:hover { background: #d97706; }
+  .ground-btn { width: 100%; margin-top: 6px; background: #7c3aed; padding: 8px; font-size: 12px; }
+  .ground-btn:hover { background: #6d28d9; }
+  .ground-btn.active { background: #5b21b6; }
+  .mark-btn { width: 100%; margin-top: 6px; background: #0891b2; padding: 8px; font-size: 12px; }
+  .mark-btn:hover { background: #0e7490; }
+  .mark-btn.active { background: #155e75; }
+  .armor-btn { width: 100%; margin-top: 6px; background: #a16207; padding: 8px; font-size: 12px; }
+  .armor-btn:hover { background: #854d0e; }
+  .armor-btn.active { background: #713f12; }
+  .legend-row { font-size: 11px; line-height: 1.8; color: #cbd5e1; display: flex; align-items: center; gap: 6px; }
+  .legend-row .sym { display: inline-block; min-width: 38px; font-size: 12px; text-align: center; font-family: monospace; color: #e2e8f0; }
+  #legend { padding: 0; }
+  #legend summary { font-size: 12px; color: #94a3b8; letter-spacing: 1px; padding: 12px; cursor: pointer; user-select: none; list-style: none; }
+  #legend summary::-webkit-details-marker { display: none; }
+  #legend summary::before { content: '▶ '; font-size: 10px; }
+  #legend[open] summary::before { content: '▼ '; }
+  #legend .legend-body { padding: 0 12px 12px; max-height: 220px; overflow-y: auto; }
+  #setup, #tutorial, #vehicleSetup, #victoryModal, #dlcModal {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.96); display: flex; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  #tutorial, #vehicleSetup, #victoryModal { z-index: 110; }
+  #victoryModal { z-index: 120; }
+  #dlcModal { z-index: 130; }
+  #setup.hidden, #tutorial.hidden, #vehicleSetup.hidden, #victoryModal.hidden, #dlcModal.hidden { display: none; }
+  .setup-panel { background: #1e293b; border-radius: 12px; padding: 24px; max-width: 720px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; }
+  .setup-panel h1 { font-size: 20px; margin-bottom: 6px; color: #e2e8f0; }
+  .setup-panel .sub { font-size: 12px; color: #94a3b8; margin-bottom: 16px; }
+  #squadList { overflow-y: auto; flex: 1; margin-bottom: 16px; }
+  .category-title { font-size: 13px; font-weight: 700; color: #fbbf24; margin: 12px 0 6px; padding: 4px 0; border-bottom: 1px solid #334155; letter-spacing: 1px; }
+  .category-title:first-child { margin-top: 0; }
+  .squad-card { background: #0f172a; border: 2px solid #334155; border-radius: 8px; padding: 12px 16px; margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+  .squad-card:hover { border-color: #3b82f6; }
+  .squad-card.selected { border-color: #fbbf24; background: #1e3a5f; }
+  .squad-card.locked { opacity: 0.45; cursor: not-allowed; }
+  .squad-card.locked:hover { border-color: #334155; }
+  .squad-card .sname { font-size: 15px; font-weight: 700; color: #e2e8f0; }
+  .squad-card .sdesc { font-size: 12px; color: #94a3b8; margin-top: 4px; }
+  .squad-card .sunits { font-size: 11px; color: #64748b; margin-top: 6px; line-height: 1.6; }
+  .squad-card .flag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; margin-right: 6px; font-weight: 600; }
+  .flag-pla { background: #991b1b; color: #fecaca; }
+  .flag-us { background: #1e40af; color: #bfdbfe; }
+  .flag-ru { background: #4d7c0f; color: #d9f99d; }
+  #startBtn { width: 100%; padding: 12px; font-size: 15px; }
+  #dlcBtn { width: 100%; margin-top: 8px; background: #7c3aed; padding: 10px; font-size: 13px; }
+  #dlcBtn:hover { background: #6d28d9; }
+  #dlcBtn.unlocked { background: #166534; }
+  #helpBtn { background: #0891b2; }
+  .tutorial-panel { background: #1e293b; border-radius: 12px; width: 100%; max-width: 1000px; height: 90vh; display: flex; overflow: hidden; }
+  .tutorial-nav { width: 200px; background: #0f172a; padding: 16px 0; overflow-y: auto; flex-shrink: 0; }
+  .tutorial-nav h2 { font-size: 14px; color: #fbbf24; padding: 0 16px 12px; letter-spacing: 1px; border-bottom: 1px solid #334155; }
+  .tut-nav-item { padding: 10px 16px; cursor: pointer; font-size: 13px; color: #cbd5e1; border-left: 3px solid transparent; }
+  .tut-nav-item:hover { background: #1e293b; }
+  .tut-nav-item.active { background: #1e293b; border-left-color: #3b82f6; color: #fbbf24; font-weight: 700; }
+  .tut-nav-item.placeholder { color: #64748b; font-style: italic; }
+  .tutorial-content { flex: 1; padding: 24px; overflow-y: auto; display: flex; flex-direction: column; }
+  .tutorial-content h3 { font-size: 20px; color: #fbbf24; margin-bottom: 12px; letter-spacing: 1px; }
+  .tutorial-content h4 { font-size: 14px; color: #94a3b8; margin: 16px 0 6px; }
+  .tutorial-content p { font-size: 13px; line-height: 1.8; color: #cbd5e1; margin: 4px 0; }
+  .tutorial-content ul { margin: 6px 0 6px 20px; font-size: 13px; line-height: 1.8; color: #cbd5e1; }
+  .tutorial-content table { border-collapse: collapse; margin: 8px 0; font-size: 12px; }
+  .tutorial-content th, .tutorial-content td { border: 1px solid #334155; padding: 6px 10px; text-align: left; }
+  .tutorial-content th { background: #0f172a; color: #94a3b8; }
+  .tutorial-content .welcome { font-size: 15px; line-height: 2; color: #e2e8f0; padding: 20px 0; border-bottom: 1px solid #334155; margin-bottom: 20px; }
+  .tutorial-content .welcome strong { color: #fbbf24; }
+  .tut-actions { margin-top: auto; padding-top: 16px; display: flex; gap: 8px; justify-content: flex-end; }
+  .tut-actions button { padding: 10px 20px; font-size: 13px; }
+  .tut-close { background: #475569; }
+  .tut-try { background: #22c55e; }
+  .tut-try:hover { background: #16a34a; }
+  .tutorial-battle-hint { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(34,197,94,0.9); color: white; padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 115; }
+  .victory-panel { background: #1e293b; border-radius: 12px; padding: 32px 48px; text-align: center; }
+  .victory-panel h2 { font-size: 24px; color: #4ade80; margin-bottom: 12px; }
+  .victory-panel p { font-size: 14px; color: #94a3b8; margin-bottom: 20px; }
+  .victory-panel button { padding: 12px 32px; font-size: 15px; }
+  .dlc-panel { background: #1e293b; border-radius: 12px; padding: 28px 36px; max-width: 440px; width: 100%; text-align: center; }
+  .dlc-panel h2 { font-size: 20px; color: #c4b5fd; margin-bottom: 8px; }
+  .dlc-panel p { font-size: 12px; color: #94a3b8; margin-bottom: 16px; line-height: 1.7; }
+  .dlc-panel input { width: 100%; padding: 12px; font-size: 14px; background: #0f172a; border: 2px solid #334155; border-radius: 6px; color: #e2e8f0; font-family: monospace; letter-spacing: 2px; text-align: center; }
+  .dlc-panel input:focus { outline: none; border-color: #7c3aed; }
+  .dlc-panel .err { color: #f87171; font-size: 12px; margin-top: 8px; min-height: 16px; }
+  .dlc-panel .btn-row { display: flex; gap: 8px; margin-top: 16px; }
+  .dlc-panel .btn-row button { flex: 1; }
+  .dlc-panel .btn-cancel { background: #475569; }
+  .dlc-panel .btn-ok { background: #7c3aed; }
+  .dlc-panel .btn-ok:hover { background: #6d28d9; }
+  .dlc-list { text-align: left; margin: 12px 0; font-size: 12px; color: #cbd5e1; background: #0f172a; border-radius: 6px; padding: 10px 14px; }
+  .dlc-list .dlc-item { padding: 4px 0; }
+  .dlc-list .dlc-item .ok { color: #4ade80; }
+  .dlc-list .dlc-item .no { color: #f87171; }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="map" width="780" height="660"></canvas>
+  <div id="side">
+    <div id="status"><h3>战场状态</h3><div id="statusInfo" style="font-size:12px;">无待命增援</div></div>
+    <div id="info"><h3>单位信息</h3><div id="unitInfo" class="stat">点击己方单位选择</div></div>
+    <details id="legend">
+      <summary>兵种图例</summary>
+      <div class="legend-body">
+        <div class="legend-row"><span class="sym" style="color:#fbbf24;">● ●</span> 班长</div>
+        <div class="legend-row"><span class="sym" style="color:#fbbf24;">✕ ●</span> 副班长/火力组长</div>
+        <div class="legend-row"><span class="sym">╱</span> 侦察兵/观察手</div>
+        <div class="legend-row"><span class="sym">◉</span> 机枪手</div>
+        <div class="legend-row"><span class="sym">◉—</span> 机枪副射手</div>
+        <div class="legend-row"><span class="sym" style="color:#c4b5fd;">∧—</span> 榴弹手助理</div>
+        <div class="legend-row"><span class="sym" style="color:#c4b5fd;">∧</span> 反坦克射手</div>
+        <div class="legend-row"><span class="sym">◉·</span> 弹药手</div>
+        <div class="legend-row"><span class="sym">✕</span> 步枪手</div>
+        <div class="legend-row"><span class="sym" style="color:#c4b5fd;">✕+</span> 精确射手</div>
+        <div class="legend-row"><span class="sym" style="color:#22c55e;">+</span> 卫生员/医护兵</div>
+        <div class="legend-row"><span class="sym" style="color:#facc15;">▬</span> 道路</div>
+        <div class="legend-row"><span class="sym" style="color:#94a3b8;">▬</span> 矮墙</div>
+        <div class="legend-row"><span class="sym" style="color:#f59e0b;">▢</span> QJY-88 平台</div>
+        <div class="legend-row"><span class="sym" style="color:#ef4444;">◯</span> 弹震中</div>
+        <div class="legend-row"><span class="sym" style="color:#06b6d4;">◌</span> 隐蔽中</div>
+        <div class="legend-row"><span class="sym" style="color:#94a3b8;">?</span> 假棋子</div>
+        <div class="legend-row"><span class="sym" style="color:#0891b2;">◎</span> 标记区域</div>
+        <div class="legend-row"><span class="sym" style="color:#dc2626;">⚠</span> 崩溃中</div>
+        <div class="legend-row"><span class="sym" style="color:#dc2626;">◆</span> 靶标（教程）</div>
+        <div class="legend-row"><span class="sym" style="color:#dc2626;">✕</span> 火力待落点</div>
+      </div>
+    </details>
+    <button id="endTurn">结束回合</button>
+    <button id="helpBtn">❓ 新手教程</button>
+    <button id="backToMenu" style="background:#475569;">返回主菜单</button>
+    <div id="logbox"><h3>战斗日志</h3><div id="logContent"></div></div>
+  </div>
+</div>
+
+<div id="setup">
+  <div class="setup-panel">
+    <h1>选择你的班组</h1>
+    <div class="sub">按类别分组 · AI 将从同类别同年代班组中随机选择对手</div>
+    <div id="squadList"></div>
+    <button id="startBtn" disabled>请先选择一个班组</button>
+    <button id="dlcBtn">🔓 加载 DLC</button>
+  </div>
+</div>
+
+<div id="dlcModal" class="hidden">
+  <div class="dlc-panel">
+    <h2>加载 DLC</h2>
+    <p>输入授权码以解锁扩展班组</p>
+    <input id="dlcInput" type="password" placeholder="输入密码" autocomplete="off">
+    <div class="err" id="dlcErr"></div>
+    <div class="dlc-list" id="dlcList"></div>
+    <div class="btn-row">
+      <button class="btn-cancel" id="dlcCancel">取消</button>
+      <button class="btn-ok" id="dlcConfirm">解锁</button>
+    </div>
+  </div>
+</div>
+
+<div id="vehicleSetup" class="hidden">
+  <div class="setup-panel" style="max-width:500px;">
+    <h1 id="vehicleSetupTitle">选择载具配置</h1>
+    <div class="sub">进场后不可更改</div>
+    <div id="vehicleOptions" style="display:flex;flex-direction:column;gap:12px;margin:16px 0;"></div>
+    <button id="vehicleConfirm" style="background:#22c55e;">确认并开战</button>
+    <button id="vehicleCancel" style="background:#475569;margin-top:8px;">取消</button>
+  </div>
+</div>
+
+<div id="tutorial" class="hidden">
+  <div class="tutorial-panel">
+    <nav class="tutorial-nav">
+      <h2>新手教程</h2>
+      <div id="tutNavList"></div>
+    </nav>
+    <div class="tutorial-content">
+      <div id="tutContent"></div>
+      <div class="tut-actions">
+        <button id="tutTryBtn" class="tut-try">▶ 试一试</button>
+        <button id="tutCloseBtn" class="tut-close">关闭教程</button>
+      </div>
+    </div>
+  </div>
+</div>
+<button id="tutBackToMenu" class="hidden" style="position:fixed;top:20px;right:20px;z-index:115;background:#475569;">返回主菜单</button>
+
+<div id="victoryModal" class="hidden">
+  <div class="victory-panel">
+    <h2>✅ 练习完成！</h2>
+    <p id="victoryMsg">你已完成本课目标。</p>
+    <button id="victoryReturn">返回教程</button>
+  </div>
+</div>
+
+<script src="js/data.js"></script>
+<script src="js/data-squads-base.js"></script>
+<script src="js/data-tutorial.js"></script>
+<script src="dlc/breaking-waves.js"></script>
+<script src="dlc/iron-spearhead.js"></script>
+<script src="dlc/tomorrows-front.js"></script>
+<script src="js/core.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>
