@@ -192,17 +192,26 @@ function aiTurn() {
           restore(); i++; render(); setTimeout(step, 400); return;
         }
       }
-      if (game.sniperDetected.red) aiBlindFireAtSniper(u);
-      const combatBlues = blues.filter(b => b.alive && b.role !== 'medic');
-      if (!u.hasMoved && combatBlues.length > 0) {
-        const cx = combatBlues.reduce((s,b)=>s+b.col,0) / combatBlues.length;
-        const cy = combatBlues.reduce((s,b)=>s+b.row,0) / combatBlues.length;
-        const st = findBestAdjacentStep(u, { col: Math.round(cx), row: Math.round(cy) });
-        if (st) { u.col = st.col; u.row = st.row; u.hasMoved = true; const terr = TERRAIN[st.col] ? TERRAIN[st.col][st.row] : 0; const extra = terr === 1 ? ' [道路]' : ''; log(`${u.name} 移动到 (${st.col},${st.row})${extra}`); }
+           if (game.sniperDetected.red) aiBlindFireAtSniper(u);
+      // 无目标时：往蓝方方向推进（红方视角 = 往西）
+      if (!u.hasMoved) {
+        const combatBlues = blues.filter(b => b.alive && b.role !== 'medic');
+        let st = null;
+        if (combatBlues.length > 0) {
+          const cx = combatBlues.reduce((s,b)=>s+b.col,0) / combatBlues.length;
+          const cy = combatBlues.reduce((s,b)=>s+b.row,0) / combatBlues.length;
+          st = findBestAdjacentStep(u, { col: Math.round(cx), row: Math.round(cy) });
+        }
+        // 后备：如果质心移动失败，就往西走一格
+        if (!st) st = findBestAdjacentStep(u, { col: u.col - 3, row: u.row });
+        if (st) {
+          u.col = st.col; u.row = st.row; u.hasMoved = true;
+          const terr = TERRAIN[st.col] ? TERRAIN[st.col][st.row] : 0;
+          const extra = terr === 1 ? ' [道路]' : '';
+          log(`${u.name} 移动到 (${st.col},${st.row})${extra}`);
+        }
       }
       restore(); i++; render(); setTimeout(step, 350); return;
-    }
-
     // 火箭筒优先
     if (u.isRocket && u.currentWeapon === 'primary' && u.rpgCooldown === 0 && u.rocketAmmo > 0 && !u.hasFired) {
       let rocketTarget = null, rScore = 0;
