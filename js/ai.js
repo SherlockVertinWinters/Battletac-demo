@@ -3,9 +3,7 @@
 // ============================================================
 
 function aiTurn() {
-  alert('【2】aiTurn 进入');
-  if (checkVictory()) { alert('【2.5】checkVictory 返回 true，直接退出'); return; }
-  alert('【3】checkVictory 通过，继续往下');
+  if (checkVictory()) return;
   processBrokenTurn('blue');
   const reds = game.units.filter(u => u.alive && u.side === 'red');
   const blues = game.units.filter(u => u.alive && u.side === 'blue');
@@ -212,6 +210,7 @@ function aiTurn() {
         }
       }
       restore(); i++; render(); setTimeout(step, 350); return;
+    }
     // 火箭筒优先
     if (u.isRocket && u.currentWeapon === 'primary' && u.rpgCooldown === 0 && u.rocketAmmo > 0 && !u.hasFired) {
       let rocketTarget = null, rScore = 0;
